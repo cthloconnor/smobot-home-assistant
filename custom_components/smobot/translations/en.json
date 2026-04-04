@@ -1,0 +1,104 @@
+{
+  "config": {
+    "step": {
+      "confirm": {
+        "title": "Confirm Smobot discovery",
+        "description": "A Smobot device was found at {host}. Choose a name to add it.",
+        "data": {
+          "name": "Name"
+        }
+      },
+      "user": {
+        "title": "Connect to Smobot",
+        "description": "Enter the hostname or IP address of your Smobot on the local network.",
+        "data": {
+          "name": "Name",
+          "host": "Host"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the Smobot device.",
+      "invalid_response": "The Smobot returned an unexpected response.",
+      "invalid_setpoint_range": "Minimum setpoint must be lower than maximum setpoint."
+    },
+    "abort": {
+      "already_configured": "This Smobot host is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Smobot options",
+        "description": "Adjust polling, the temperature unit reported by the device, and setpoint safety limits.",
+        "data": {
+          "scan_interval": "Polling interval (seconds)",
+          "temperature_unit": "Reported temperature unit",
+          "min_setpoint": "Minimum setpoint",
+          "max_setpoint": "Maximum setpoint"
+        }
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "grill": {
+        "name": "Grill"
+      }
+    },
+    "sensor": {
+      "grill_temperature": {
+        "name": "Grill temperature"
+      },
+      "food_probe_1": {
+        "name": "Food probe 1"
+      },
+      "food_probe_2": {
+        "name": "Food probe 2"
+      },
+      "damper_state": {
+        "name": "Damper state"
+      },
+      "damper_mode": {
+        "name": "Damper mode"
+      },
+      "cook_time": {
+        "name": "Cook time"
+      },
+      "error": {
+        "name": "Error"
+      },
+      "proportional": {
+        "name": "Proportional"
+      },
+      "integral": {
+        "name": "Integral"
+      },
+      "derivative": {
+        "name": "Derivative"
+      },
+      "kp": {
+        "name": "Kp"
+      },
+      "ki": {
+        "name": "Ki"
+      },
+      "kd": {
+        "name": "Kd"
+      },
+      "device_state": {
+        "name": "Device state"
+      }
+    },
+    "number": {
+      "grill_setpoint": {
+        "name": "Grill setpoint"
+      }
+    },
+    "binary_sensor": {
+      "lid_open": {
+        "name": "Lid open"
+      }
+    }
+  }
+}
