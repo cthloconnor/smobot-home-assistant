@@ -43,6 +43,11 @@
     }
   },
   "entity": {
+    "button": {
+      "refresh": {
+        "name": "Refresh"
+      }
+    },
     "climate": {
       "grill": {
         "name": "Grill"
@@ -87,6 +92,15 @@
       },
       "device_state": {
         "name": "Device state"
+      },
+      "operating_state": {
+        "name": "Operating state"
+      },
+      "probe_status": {
+        "name": "Probe status"
+      },
+      "raw_payload": {
+        "name": "Raw payload"
       }
     },
     "number": {

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 import logging
 from typing import Any
 
@@ -34,6 +35,7 @@ class SmobotStatus:
     ki: int
     kd: int
     flags: int
+    raw_payload: dict[str, Any]
 
     @classmethod
     def from_api(cls, payload: dict[str, Any]) -> "SmobotStatus":
@@ -57,6 +59,7 @@ class SmobotStatus:
             ki=int(payload["ki"]),
             kd=int(payload["kd"]),
             flags=int(payload["flg"]),
+            raw_payload=dict(payload),
         )
 
     @property
@@ -93,6 +96,30 @@ class SmobotStatus:
     def grill_setpoint_value(self) -> int | None:
         """Return the active setpoint if available."""
         return None if self.grill_setpoint == SENTINEL_VALUE else self.grill_setpoint
+
+    @property
+    def operating_state(self) -> str:
+        """Return a human-readable operating state."""
+        if self.grill_setpoint == SENTINEL_VALUE:
+            return "idle"
+        if self.grill_temperature_value is None:
+            return "starting"
+        return "active"
+
+    @property
+    def probe_status(self) -> str:
+        """Return a human-readable summary of connected probes."""
+        probes = int(self.food_probe_1 is not None) + int(self.food_probe_2 is not None)
+        if probes == 0:
+            return "no_probes"
+        if probes == 1:
+            return "one_probe"
+        return "two_probes"
+
+    @property
+    def raw_payload_json(self) -> str:
+        """Return the raw device payload as compact JSON."""
+        return json.dumps(self.raw_payload, sort_keys=True, separators=(",", ":"))
 
 
 class SmobotApiClient:

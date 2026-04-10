@@ -121,6 +121,27 @@ SENSORS: tuple[SmobotSensorEntityDescription, ...] = (
         value_fn=lambda status: status.device_state,
         diagnostic=True,
     ),
+    SmobotSensorEntityDescription(
+        key="operating_state",
+        translation_key="operating_state",
+        icon="mdi:grill-outline",
+        value_fn=lambda status: status.operating_state,
+        diagnostic=True,
+    ),
+    SmobotSensorEntityDescription(
+        key="probe_status",
+        translation_key="probe_status",
+        icon="mdi:thermometer-lines",
+        value_fn=lambda status: status.probe_status,
+        diagnostic=True,
+    ),
+    SmobotSensorEntityDescription(
+        key="raw_payload",
+        translation_key="raw_payload",
+        icon="mdi:code-json",
+        value_fn=lambda status: status.raw_payload_json,
+        diagnostic=True,
+    ),
 )
 
 

@@ -19,8 +19,12 @@ Based on:
 - Error sensor
 - PID-style sensors: `P`, `I`, `Kp`, `Ki`, `Kd`
 - Device state sensor
+- Operating state diagnostic sensor
+- Probe status diagnostic sensor
+- Raw payload diagnostic sensor
 - Lid open binary sensor
 - Grill setpoint number entity
+- Manual refresh button
 - DHCP discovery for devices advertising as `SMOBOT*`
 
 ## Repository Layout
@@ -53,6 +57,7 @@ Based on:
 - Assumes the Smobot API is available at `http://<host>/ajax/`.
 - Temperatures default to Fahrenheit.
 - Diagnostic entities are disabled by default to keep the default dashboard cleaner.
+- A diagnostic refresh button is included if you want to force an immediate poll.
 
 ## License
 

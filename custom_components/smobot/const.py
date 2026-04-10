@@ -17,4 +17,4 @@ CONF_MAX_SETPOINT = "max_setpoint"
 DATA_CLIENT = "client"
 DATA_COORDINATOR = "coordinator"
 
-PLATFORMS = ["sensor", "number", "binary_sensor", "climate"]
+PLATFORMS = ["sensor", "number", "binary_sensor", "climate", "button"]
