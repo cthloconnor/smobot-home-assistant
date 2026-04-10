@@ -17,7 +17,7 @@ Based on:
 - Damper mode sensor
 - Cook time sensor
 - Error sensor
-- PID sensors: `P`, `I`, `D`, `Kp`, `Ki`, `Kd`
+- PID-style sensors: `P`, `I`, `Kp`, `Ki`, `Kd`
 - Device state sensor
 - Lid open binary sensor
 - Grill setpoint number entity
@@ -28,6 +28,19 @@ Based on:
 - Integration code: `custom_components/smobot`
 
 ## Install
+
+### HACS
+
+1. Open HACS.
+2. Go to `Integrations`.
+3. Open the three-dot menu and choose `Custom repositories`.
+4. Add `https://github.com/cthloconnor/smobot-home-assistant` as an `Integration`.
+5. Search for `Smobot` in HACS and install it.
+6. Restart Home Assistant.
+7. Go to `Settings -> Devices & Services -> Add Integration`.
+8. Search for `Smobot` and complete setup.
+
+### Manual
 
 1. Copy `custom_components/smobot` into your Home Assistant config directory.
 2. Restart Home Assistant.

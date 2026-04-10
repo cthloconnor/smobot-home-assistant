@@ -69,9 +69,9 @@ class SmobotClimate(SmobotEntity, ClimateEntity):
     @property
     def target_temperature(self) -> float | None:
         """Return the target grill temperature."""
-        if self.smobot_status.grill_setpoint == 999:
+        if self.smobot_status.grill_setpoint_value is None:
             return None
-        return float(self.smobot_status.grill_setpoint)
+        return float(self.smobot_status.grill_setpoint_value)
 
     @property
     def target_temperature_step(self) -> float:
@@ -112,5 +112,6 @@ class SmobotClimate(SmobotEntity, ClimateEntity):
         """Set the grill setpoint."""
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is None:
             return
-        await self.coordinator.client.async_set_setpoint(int(temperature))
+        clamped_temperature = max(self.min_temp, min(self.max_temp, float(temperature)))
+        await self.coordinator.client.async_set_setpoint(int(clamped_temperature))
         await self.coordinator.async_request_refresh()

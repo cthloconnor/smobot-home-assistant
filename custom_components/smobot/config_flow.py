@@ -14,7 +14,6 @@ from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
 from homeassistant.const import CONF_HOST, CONF_NAME
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.util.unit_system import METRIC_SYSTEM
 
 from .client import SmobotApiClient
 from .const import (
@@ -90,6 +89,8 @@ class SmobotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             self._async_abort_entries_match({CONF_HOST: user_input[CONF_HOST]})
+            await self.async_set_unique_id(user_input[CONF_HOST])
+            self._abort_if_unique_id_configured()
 
             try:
                 info = await _validate_input(self.hass, user_input)
@@ -137,19 +138,9 @@ class SmobotOptionsFlow(config_entries.OptionsFlow):
             )
             return self.async_create_entry(title="", data=user_input)
 
-        default_unit = self.config_entry.options.get(
-            CONF_TEMPERATURE_UNIT,
-            DEFAULT_TEMPERATURE_UNIT,
-        )
-        if (
-            self.config_entry.options.get(CONF_TEMPERATURE_UNIT) is None
-            and self.hass.config.units is METRIC_SYSTEM
-        ):
-            default_unit = "C"
-
         return self.async_show_form(
             step_id="init",
-            data_schema=self._build_options_schema(default_unit),
+            data_schema=self._build_options_schema(),
         )
 
     def _build_options_schema(self, default_unit: str | None = None) -> vol.Schema:

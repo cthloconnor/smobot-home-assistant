@@ -23,7 +23,6 @@ class SmobotStatus:
     error: int
     proportional: int
     integral: int
-    derivative: int
     damper_mode: int
     damper_state: int
     lid_open: bool
@@ -47,7 +46,6 @@ class SmobotStatus:
             error=int(payload["err"]),
             proportional=int(payload["p"]),
             integral=int(payload["i"]),
-            derivative=int(payload["d"]),
             damper_mode=int(payload["d"]),
             damper_state=int(payload["dpr"]),
             lid_open=bool(payload["ld"]),
@@ -74,12 +72,22 @@ class SmobotStatus:
     @property
     def is_active(self) -> bool:
         """Return whether the Smobot appears to be actively controlling."""
-        return self.device_state != 0 and self.grill_setpoint != SENTINEL_VALUE
+        return self.grill_setpoint != SENTINEL_VALUE
 
     @property
     def has_error(self) -> bool:
         """Return whether the device reports an error."""
         return self.error != SENTINEL_VALUE
+
+    @property
+    def error_value(self) -> int | None:
+        """Return a normalized error value."""
+        return None if self.error == SENTINEL_VALUE else self.error
+
+    @property
+    def grill_setpoint_value(self) -> int | None:
+        """Return the active setpoint if available."""
+        return None if self.grill_setpoint == SENTINEL_VALUE else self.grill_setpoint
 
 
 class SmobotApiClient:

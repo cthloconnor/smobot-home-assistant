@@ -19,14 +19,16 @@
     },
     "error": {
       "cannot_connect": "Failed to connect to the Smobot device.",
-      "invalid_response": "The Smobot returned an unexpected response.",
-      "invalid_setpoint_range": "Minimum setpoint must be lower than maximum setpoint."
+      "invalid_response": "The Smobot returned an unexpected response."
     },
     "abort": {
       "already_configured": "This Smobot host is already configured."
     }
   },
   "options": {
+    "error": {
+      "invalid_setpoint_range": "Minimum setpoint must be lower than maximum setpoint."
+    },
     "step": {
       "init": {
         "title": "Smobot options",
@@ -73,9 +75,6 @@
       },
       "integral": {
         "name": "Integral"
-      },
-      "derivative": {
-        "name": "Derivative"
       },
       "kp": {
         "name": "Kp"

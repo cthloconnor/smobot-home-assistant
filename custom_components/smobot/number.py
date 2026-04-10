@@ -44,9 +44,11 @@ class SmobotSetpointNumber(SmobotEntity, NumberEntity):
         self._attr_unique_id = f"{self.entity_id_prefix}_grill_setpoint"
 
     @property
-    def native_value(self) -> float:
+    def native_value(self) -> float | None:
         """Return the current setpoint."""
-        return float(self.smobot_status.grill_setpoint)
+        if self.smobot_status.grill_setpoint_value is None:
+            return None
+        return float(self.smobot_status.grill_setpoint_value)
 
     @property
     def native_min_value(self) -> float:
@@ -83,5 +85,6 @@ class SmobotSetpointNumber(SmobotEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         """Update the grill setpoint on the device."""
-        await self.coordinator.client.async_set_setpoint(int(value))
+        clamped_value = max(self.native_min_value, min(self.native_max_value, value))
+        await self.coordinator.client.async_set_setpoint(int(clamped_value))
         await self.coordinator.async_request_refresh()

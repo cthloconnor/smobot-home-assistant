@@ -76,7 +76,7 @@ SENSORS: tuple[SmobotSensorEntityDescription, ...] = (
         key="error",
         translation_key="error",
         icon="mdi:alert-circle-outline",
-        value_fn=lambda status: status.error,
+        value_fn=lambda status: status.error_value,
         diagnostic=True,
     ),
     SmobotSensorEntityDescription(
@@ -91,13 +91,6 @@ SENSORS: tuple[SmobotSensorEntityDescription, ...] = (
         translation_key="integral",
         icon="mdi:calculator-variant-outline",
         value_fn=lambda status: status.integral,
-        diagnostic=True,
-    ),
-    SmobotSensorEntityDescription(
-        key="derivative",
-        translation_key="derivative",
-        icon="mdi:calculator-variant-outline",
-        value_fn=lambda status: status.derivative,
         diagnostic=True,
     ),
     SmobotSensorEntityDescription(
