@@ -70,6 +70,11 @@ class SmobotStatus:
         return None if self.food_probe_2_raw == SENTINEL_VALUE else self.food_probe_2_raw
 
     @property
+    def grill_temperature_value(self) -> int | None:
+        """Return grill temperature if the device is reporting one."""
+        return None if self.grill_temperature == SENTINEL_VALUE else self.grill_temperature
+
+    @property
     def is_active(self) -> bool:
         """Return whether the Smobot appears to be actively controlling."""
         return self.grill_setpoint != SENTINEL_VALUE

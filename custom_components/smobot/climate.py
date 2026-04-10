@@ -64,7 +64,9 @@ class SmobotClimate(SmobotEntity, ClimateEntity):
     @property
     def current_temperature(self) -> float | None:
         """Return the current grill temperature."""
-        return float(self.smobot_status.grill_temperature)
+        if self.smobot_status.grill_temperature_value is None:
+            return None
+        return float(self.smobot_status.grill_temperature_value)
 
     @property
     def target_temperature(self) -> float | None:

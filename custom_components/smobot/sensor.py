@@ -31,7 +31,7 @@ SENSORS: tuple[SmobotSensorEntityDescription, ...] = (
         translation_key="grill_temperature",
         device_class=SensorDeviceClass.TEMPERATURE,
         suggested_display_precision=0,
-        value_fn=lambda status: status.grill_temperature,
+        value_fn=lambda status: status.grill_temperature_value,
         temperature=True,
     ),
     SmobotSensorEntityDescription(
