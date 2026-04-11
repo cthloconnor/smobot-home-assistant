@@ -50,7 +50,7 @@ Based on:
 2. Restart Home Assistant.
 3. Go to `Settings -> Devices & Services -> Add Integration`.
 4. Search for `Smobot`.
-5. Enter the Smobot IP address or hostname on your local network.
+5. Enter the Smobot IP address on your local network.
 
 ## Notes
 
