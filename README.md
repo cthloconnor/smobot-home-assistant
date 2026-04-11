@@ -55,7 +55,6 @@ Based on:
 ## Notes
 
 - Assumes the Smobot API is available at `http://<host>/ajax/`.
-- Temperatures default to Fahrenheit.
 - Diagnostic entities are disabled by default to keep the default dashboard cleaner.
 - A diagnostic refresh button is included if you want to force an immediate poll.
 
