@@ -38,8 +38,6 @@ class SmobotDataUpdateCoordinator(DataUpdateCoordinator[SmobotStatus]):
         )
         self.entry = entry
         self.client = client
-        self._optimistic_grill_setpoint_f: int | None = None
-        self._optimistic_grill_setpoint_until: datetime | None = None
         self._cook_elapsed_before_pause = timedelta(0)
         self._local_cook_started_at: datetime | None = None
         self._cook_prompt_sent = False
@@ -52,28 +50,19 @@ class SmobotDataUpdateCoordinator(DataUpdateCoordinator[SmobotStatus]):
             raise UpdateFailed(
                 f"Error communicating with Smobot at {self.client.host}: {err}"
             ) from err
-        self._update_optimistic_setpoint(status)
         self._update_local_cook_timer(status)
         return status
 
     @property
     def grill_setpoint_value(self) -> int | None:
-        """Return the best available grill setpoint in API Fahrenheit units."""
+        """Return the device-reported grill setpoint in API Fahrenheit units."""
         if self.data is not None and self.data.grill_setpoint_value is not None:
             return self.data.grill_setpoint_value
-        if (
-            self._optimistic_grill_setpoint_f is not None
-            and self._optimistic_grill_setpoint_until is not None
-            and utcnow() < self._optimistic_grill_setpoint_until
-        ):
-            return self._optimistic_grill_setpoint_f
         return None
 
     async def async_set_grill_setpoint(self, value_f: int) -> None:
-        """Set the grill setpoint and keep a short optimistic local value."""
+        """Set the grill setpoint and refresh the device-reported value."""
         await self.client.async_set_setpoint(value_f)
-        self._optimistic_grill_setpoint_f = value_f
-        self._optimistic_grill_setpoint_until = utcnow() + timedelta(minutes=10)
         await self.async_request_refresh()
 
     @property
@@ -117,19 +106,6 @@ class SmobotDataUpdateCoordinator(DataUpdateCoordinator[SmobotStatus]):
             notification_id=f"{DOMAIN}_{self.entry.entry_id}_cook_timer",
         )
         await self.async_request_refresh()
-
-    def _update_optimistic_setpoint(self, status: SmobotStatus) -> None:
-        """Clear optimistic setpoint state once the device reports a real value."""
-        if status.grill_setpoint_value is not None:
-            self._optimistic_grill_setpoint_f = None
-            self._optimistic_grill_setpoint_until = None
-            return
-        if (
-            self._optimistic_grill_setpoint_until is not None
-            and utcnow() >= self._optimistic_grill_setpoint_until
-        ):
-            self._optimistic_grill_setpoint_f = None
-            self._optimistic_grill_setpoint_until = None
 
     def _cook_timer_can_start(self, status: SmobotStatus) -> bool:
         """Return whether the device is reporting valid cook values."""

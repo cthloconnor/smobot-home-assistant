@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from dataclasses import dataclass
 from datetime import timedelta
 import json
@@ -170,45 +169,21 @@ class SmobotApiClient:
     async def async_set_setpoint(self, value: int) -> dict[str, Any]:
         """Update the grill temperature setpoint and verify it was accepted."""
         setpoint = int(value)
-        attempts: tuple[tuple[str, str, dict[str, Any]], ...] = (
-            ("POST", "/setgrillset", {"json": {"setpoint": setpoint}}),
-            ("POST", "/setgrillset", {"data": {"setpoint": str(setpoint)}}),
-            ("POST", "/setgrillset", {"json": {"set": setpoint}}),
-            ("GET", "/setgrillset", {"params": {"setpoint": str(setpoint)}}),
-            ("GET", "/setgrillset", {"params": {"set": str(setpoint)}}),
+        await self._request_json(
+            "POST",
+            "/setgrillset",
+            json={"setpoint": setpoint},
+            expect_json=False,
         )
-        last_error: Exception | None = None
 
-        for method, path, kwargs in attempts:
-            try:
-                await self._request_json(
-                    method,
-                    path,
-                    expect_json=False,
-                    **kwargs,
-                )
-                await asyncio.sleep(0.75)
-                status = await self.async_get_status()
-            except (ClientError, KeyError, TypeError, ValueError) as err:
-                last_error = err
-                continue
+        status = await self.async_get_status()
+        if status.grill_setpoint_value == setpoint:
+            return {}
 
-            if status.grill_setpoint_value == setpoint:
-                return {}
-
-            _LOGGER.debug(
-                "Smobot setpoint attempt %s %s did not stick; requested %s, got %s",
-                method,
-                path,
-                setpoint,
-                status.grill_setpoint,
-            )
-
-        if last_error is not None:
-            raise ValueError(
-                f"Smobot did not accept setpoint {setpoint}: {last_error}"
-            ) from last_error
-        raise ValueError(f"Smobot did not accept setpoint {setpoint}")
+        raise ValueError(
+            "Smobot did not accept setpoint "
+            f"{setpoint}; device reported {status.grill_setpoint}"
+        )
 
     async def _request_json(
         self,
