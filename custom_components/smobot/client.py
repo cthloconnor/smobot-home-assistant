@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import timedelta
 import json
 import logging
 from typing import Any
@@ -121,6 +122,27 @@ class SmobotStatus:
         """Return the raw device payload as compact JSON."""
         return json.dumps(self.raw_payload, sort_keys=True, separators=(",", ":"))
 
+    @property
+    def damper_mode_label(self) -> str:
+        """Return a friendly damper mode label."""
+        if self.damper_mode == SENTINEL_VALUE:
+            return "idle"
+        if self.damper_mode == 0:
+            return "auto"
+        if self.damper_mode == 1:
+            return "manual"
+        return f"mode_{self.damper_mode}"
+
+
+def format_elapsed_time(value: timedelta | None) -> str | None:
+    """Format elapsed time as HH:MM:SS."""
+    if value is None:
+        return None
+    total_seconds = max(0, int(value.total_seconds()))
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+
 
 class SmobotApiClient:
     """Thin wrapper around the local Smobot AJAX API."""
@@ -144,10 +166,19 @@ class SmobotApiClient:
 
     async def async_set_setpoint(self, value: int) -> dict[str, Any]:
         """Update the grill temperature setpoint."""
-        return await self._request_json("POST", "/setgrillset", json={"setpoint": value})
+        return await self._request_json(
+            "POST",
+            "/setgrillset",
+            json={"setpoint": value},
+            expect_json=False,
+        )
 
     async def _request_json(
-        self, method: str, path: str, json: dict[str, Any] | None = None
+        self,
+        method: str,
+        path: str,
+        json: dict[str, Any] | None = None,
+        expect_json: bool = True,
     ) -> dict[str, Any]:
         """Execute an HTTP request against the local Smobot API."""
         url = f"{self._base_url}{path}"
@@ -163,6 +194,9 @@ class SmobotApiClient:
             },
             raise_for_status=True,
         ) as response:
+            if not expect_json:
+                await response.read()
+                return {}
             return await response.json()
 
 

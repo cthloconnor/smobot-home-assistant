@@ -9,18 +9,16 @@ from homeassistant.components.climate.const import (
     HVACMode,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
+from homeassistant.const import ATTR_TEMPERATURE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     CONF_MAX_SETPOINT,
     CONF_MIN_SETPOINT,
-    CONF_TEMPERATURE_UNIT,
     DATA_COORDINATOR,
-    DEFAULT_MAX_SETPOINT,
-    DEFAULT_MIN_SETPOINT,
-    DEFAULT_TEMPERATURE_UNIT,
+    DEFAULT_MAX_SETPOINT_F,
+    DEFAULT_MIN_SETPOINT_F,
     DOMAIN,
 )
 from .entity import SmobotEntity
@@ -51,29 +49,17 @@ class SmobotClimate(SmobotEntity, ClimateEntity):
     @property
     def temperature_unit(self) -> str:
         """Return the configured temperature unit."""
-        return (
-            UnitOfTemperature.CELSIUS
-            if self.coordinator.entry.options.get(
-                CONF_TEMPERATURE_UNIT,
-                DEFAULT_TEMPERATURE_UNIT,
-            )
-            == "C"
-            else UnitOfTemperature.FAHRENHEIT
-        )
+        return self.native_temperature_unit
 
     @property
     def current_temperature(self) -> float | None:
         """Return the current grill temperature."""
-        if self.smobot_status.grill_temperature_value is None:
-            return None
-        return float(self.smobot_status.grill_temperature_value)
+        return self.api_to_native_temperature(self.smobot_status.grill_temperature_value)
 
     @property
     def target_temperature(self) -> float | None:
         """Return the target grill temperature."""
-        if self.smobot_status.grill_setpoint_value is None:
-            return None
-        return float(self.smobot_status.grill_setpoint_value)
+        return self.api_to_native_temperature(self.smobot_status.grill_setpoint_value)
 
     @property
     def target_temperature_step(self) -> float:
@@ -86,7 +72,7 @@ class SmobotClimate(SmobotEntity, ClimateEntity):
         return float(
             self.coordinator.entry.options.get(
                 CONF_MIN_SETPOINT,
-                DEFAULT_MIN_SETPOINT,
+                self.api_to_native_temperature(DEFAULT_MIN_SETPOINT_F),
             )
         )
 
@@ -96,7 +82,7 @@ class SmobotClimate(SmobotEntity, ClimateEntity):
         return float(
             self.coordinator.entry.options.get(
                 CONF_MAX_SETPOINT,
-                DEFAULT_MAX_SETPOINT,
+                self.api_to_native_temperature(DEFAULT_MAX_SETPOINT_F),
             )
         )
 
@@ -115,5 +101,17 @@ class SmobotClimate(SmobotEntity, ClimateEntity):
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is None:
             return
         clamped_temperature = max(self.min_temp, min(self.max_temp, float(temperature)))
-        await self.coordinator.client.async_set_setpoint(int(clamped_temperature))
+        await self.coordinator.client.async_set_setpoint(
+            self.native_to_api_temperature(clamped_temperature)
+        )
         await self.coordinator.async_request_refresh()
+
+    @property
+    def extra_state_attributes(self):
+        """Return extra climate diagnostics."""
+        attrs = {}
+        if self.smobot_status.grill_temperature_value is not None:
+            attrs["current_temperature_f"] = self.smobot_status.grill_temperature_value
+        if self.smobot_status.grill_setpoint_value is not None:
+            attrs["target_temperature_f"] = self.smobot_status.grill_setpoint_value
+        return attrs

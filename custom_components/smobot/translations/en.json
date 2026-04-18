@@ -32,10 +32,10 @@
     "step": {
       "init": {
         "title": "Smobot options",
-        "description": "Adjust polling, the temperature unit reported by the device, and setpoint safety limits.",
+        "description": "Adjust polling, display temperature unit, and setpoint safety limits.",
         "data": {
           "scan_interval": "Polling interval (seconds)",
-          "temperature_unit": "Reported temperature unit",
+          "temperature_unit": "Display temperature unit",
           "min_setpoint": "Minimum setpoint",
           "max_setpoint": "Maximum setpoint"
         }
@@ -46,6 +46,15 @@
     "button": {
       "refresh": {
         "name": "Refresh"
+      },
+      "start_cook_timer": {
+        "name": "Start cook timer"
+      },
+      "pause_cook_timer": {
+        "name": "Pause cook timer"
+      },
+      "reset_cook_timer": {
+        "name": "Reset cook timer"
       }
     },
     "climate": {
@@ -62,6 +71,15 @@
       },
       "food_probe_2": {
         "name": "Food probe 2"
+      },
+      "grill_temperature_f": {
+        "name": "Grill temperature Fahrenheit"
+      },
+      "food_probe_1_f": {
+        "name": "Food probe 1 Fahrenheit"
+      },
+      "food_probe_2_f": {
+        "name": "Food probe 2 Fahrenheit"
       },
       "damper_state": {
         "name": "Damper state"
@@ -101,11 +119,20 @@
       },
       "raw_payload": {
         "name": "Raw payload"
+      },
+      "local_cook_timer": {
+        "name": "Local cook timer"
       }
     },
     "number": {
       "grill_setpoint": {
         "name": "Grill setpoint"
+      },
+      "food_probe_1_target": {
+        "name": "Food probe 1 target"
+      },
+      "food_probe_2_target": {
+        "name": "Food probe 2 target"
       }
     },
     "binary_sensor": {

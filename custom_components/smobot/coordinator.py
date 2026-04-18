@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 import logging
 
 from aiohttp import ClientError
+from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.util.dt import utcnow
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .client import SmobotApiClient, SmobotStatus
@@ -36,13 +38,92 @@ class SmobotDataUpdateCoordinator(DataUpdateCoordinator[SmobotStatus]):
         )
         self.entry = entry
         self.client = client
+        self._cook_elapsed_before_pause = timedelta(0)
+        self._local_cook_started_at: datetime | None = None
+        self._cook_prompt_sent = False
 
     async def _async_update_data(self) -> SmobotStatus:
         """Fetch data from the device."""
         try:
-            return await self.client.async_get_status()
+            status = await self.client.async_get_status()
         except (ClientError, KeyError, TypeError, ValueError) as err:
-            raise UpdateFailed(f"Error communicating with Smobot at {self.client.host}: {err}") from err
+            raise UpdateFailed(
+                f"Error communicating with Smobot at {self.client.host}: {err}"
+            ) from err
+        self._update_local_cook_timer(status)
+        return status
+
+    @property
+    def local_cook_elapsed(self) -> timedelta | None:
+        """Return locally tracked cook elapsed time."""
+        if self._local_cook_started_at is not None:
+            return self._cook_elapsed_before_pause + (
+                utcnow() - self._local_cook_started_at
+            )
+        if self._cook_elapsed_before_pause > timedelta(0):
+            return self._cook_elapsed_before_pause
+        return None
+
+    @property
+    def cook_timer_running(self) -> bool:
+        """Return whether the local cook timer is running."""
+        return self._local_cook_started_at is not None
+
+    async def async_start_cook_timer(self) -> None:
+        """Start or resume the local cook timer."""
+        if self._local_cook_started_at is None:
+            self._local_cook_started_at = utcnow()
+            self._cook_prompt_sent = True
+            await self.async_request_refresh()
+
+    async def async_pause_cook_timer(self) -> None:
+        """Pause the local cook timer."""
+        if self._local_cook_started_at is None:
+            return
+        self._cook_elapsed_before_pause += utcnow() - self._local_cook_started_at
+        self._local_cook_started_at = None
+        await self.async_request_refresh()
+
+    async def async_reset_cook_timer(self) -> None:
+        """Reset the local cook timer."""
+        self._cook_elapsed_before_pause = timedelta(0)
+        self._local_cook_started_at = None
+        self._cook_prompt_sent = False
+        persistent_notification.async_dismiss(
+            self.hass,
+            notification_id=f"{DOMAIN}_{self.entry.entry_id}_cook_timer",
+        )
+        await self.async_request_refresh()
+
+    def _cook_timer_can_start(self, status: SmobotStatus) -> bool:
+        """Return whether the device is reporting valid cook values."""
+        return (
+            status.grill_temperature_value is not None
+            and status.grill_setpoint_value is not None
+        )
+
+    def _maybe_prompt_for_cook_timer(self, status: SmobotStatus) -> None:
+        """Prompt once when a valid cook appears but the timer is not running."""
+        if (
+            self._cook_prompt_sent
+            or self.cook_timer_running
+            or self.local_cook_elapsed is not None
+            or not self._cook_timer_can_start(status)
+        ):
+            return None
+        persistent_notification.async_create(
+            self.hass,
+            "The Smobot is reporting valid grill and set temperatures. "
+            "Do you want to start a cook timer? Use the Smobot Start cook timer "
+            "button to begin.",
+            title="Start Smobot cook timer?",
+            notification_id=f"{DOMAIN}_{self.entry.entry_id}_cook_timer",
+        )
+        self._cook_prompt_sent = True
+
+    def _update_local_cook_timer(self, status: SmobotStatus) -> None:
+        """Prompt for a local cook timer when the device is ready."""
+        self._maybe_prompt_for_cook_timer(status)
 
 
 def _as_timedelta(value: timedelta | int) -> timedelta:

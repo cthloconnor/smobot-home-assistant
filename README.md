@@ -22,9 +22,13 @@ Based on:
 - Operating state diagnostic sensor
 - Probe status diagnostic sensor
 - Raw payload diagnostic sensor
+- Local cook timer diagnostic sensor
+- Optional Fahrenheit helper sensors for grill and food probe temperatures
 - Lid open binary sensor
 - Grill setpoint number entity
+- Food probe 1 and 2 target temperature helper entities
 - Manual refresh button
+- Start, pause, and reset buttons for the local cook timer
 - DHCP discovery for devices advertising as `SMOBOT*`
 
 ## Repository Layout
@@ -55,8 +59,11 @@ Based on:
 ## Notes
 
 - Assumes the Smobot API is available at `http://<host>/ajax/`.
+- Temperatures default to Celsius, with the raw Fahrenheit value exposed as an attribute. Optional Fahrenheit helper sensors are also available from the entity registry if you want to show Fahrenheit as secondary text in a card.
+- Food probe target helpers are local Home Assistant values; Smobot does not appear to expose a local API for food target alarms.
 - Diagnostic entities are disabled by default to keep the default dashboard cleaner.
 - A diagnostic refresh button is included if you want to force an immediate poll.
+- When valid cook temperatures are first detected, Home Assistant prompts you once to start the local cook timer. It will not start automatically.
 
 ## License
 

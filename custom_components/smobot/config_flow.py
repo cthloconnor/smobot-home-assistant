@@ -21,8 +21,8 @@ from .const import (
     CONF_MIN_SETPOINT,
     CONF_SCAN_INTERVAL,
     CONF_TEMPERATURE_UNIT,
-    DEFAULT_MAX_SETPOINT,
-    DEFAULT_MIN_SETPOINT,
+    DEFAULT_MAX_SETPOINT_F,
+    DEFAULT_MIN_SETPOINT_F,
     DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_TEMPERATURE_UNIT,
@@ -172,15 +172,22 @@ class SmobotOptionsFlow(config_entries.OptionsFlow):
                     CONF_MIN_SETPOINT,
                     default=self.config_entry.options.get(
                         CONF_MIN_SETPOINT,
-                        DEFAULT_MIN_SETPOINT,
+                        _api_fahrenheit_to_unit(DEFAULT_MIN_SETPOINT_F, default_unit),
                     ),
                 ): vol.All(vol.Coerce(int), vol.Range(min=1, max=1000)),
                 vol.Required(
                     CONF_MAX_SETPOINT,
                     default=self.config_entry.options.get(
                         CONF_MAX_SETPOINT,
-                        DEFAULT_MAX_SETPOINT,
+                        _api_fahrenheit_to_unit(DEFAULT_MAX_SETPOINT_F, default_unit),
                     ),
                 ): vol.All(vol.Coerce(int), vol.Range(min=1, max=1000)),
             }
         )
+
+
+def _api_fahrenheit_to_unit(value: int | float, unit: str) -> int:
+    """Convert API Fahrenheit defaults to the selected options unit."""
+    if unit == "C":
+        return int(round((float(value) - 32.0) * 5.0 / 9.0))
+    return int(round(float(value)))
