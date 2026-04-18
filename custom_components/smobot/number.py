@@ -53,7 +53,7 @@ class SmobotSetpointNumber(SmobotEntity, NumberEntity):
     @property
     def native_value(self) -> float | None:
         """Return the current setpoint."""
-        return self.api_to_native_temperature(self.smobot_status.grill_setpoint_value)
+        return self.api_to_native_temperature(self.coordinator.grill_setpoint_value)
 
     @property
     def native_min_value(self) -> float:
@@ -83,17 +83,16 @@ class SmobotSetpointNumber(SmobotEntity, NumberEntity):
     async def async_set_native_value(self, value: float) -> None:
         """Update the grill setpoint on the device."""
         clamped_value = max(self.native_min_value, min(self.native_max_value, value))
-        await self.coordinator.client.async_set_setpoint(
+        await self.coordinator.async_set_grill_setpoint(
             self.native_to_api_temperature(clamped_value)
         )
-        await self.coordinator.async_request_refresh()
 
     @property
     def extra_state_attributes(self):
         """Return Fahrenheit diagnostics."""
-        if self.smobot_status.grill_setpoint_value is None:
+        if self.coordinator.grill_setpoint_value is None:
             return {}
-        return {"temperature_f": self.smobot_status.grill_setpoint_value}
+        return {"temperature_f": self.coordinator.grill_setpoint_value}
 
 
 class SmobotFoodProbeTargetNumber(SmobotEntity, RestoreEntity, NumberEntity):

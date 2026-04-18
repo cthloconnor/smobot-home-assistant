@@ -81,7 +81,7 @@ class SmobotStatus:
     @property
     def is_active(self) -> bool:
         """Return whether the Smobot appears to be actively controlling."""
-        return self.grill_setpoint != SENTINEL_VALUE
+        return self.grill_setpoint_value is not None
 
     @property
     def has_error(self) -> bool:
@@ -96,12 +96,14 @@ class SmobotStatus:
     @property
     def grill_setpoint_value(self) -> int | None:
         """Return the active setpoint if available."""
-        return None if self.grill_setpoint == SENTINEL_VALUE else self.grill_setpoint
+        if self.grill_setpoint <= 0 or self.grill_setpoint == SENTINEL_VALUE:
+            return None
+        return self.grill_setpoint
 
     @property
     def operating_state(self) -> str:
         """Return a human-readable operating state."""
-        if self.grill_setpoint == SENTINEL_VALUE:
+        if self.grill_setpoint_value is None:
             return "idle"
         if self.grill_temperature_value is None:
             return "starting"
