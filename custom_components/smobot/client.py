@@ -166,25 +166,6 @@ class SmobotApiClient:
         _LOGGER.debug("Smobot status payload from %s: %s", self._host, payload)
         return SmobotStatus.from_api(payload)
 
-    async def async_set_setpoint(self, value: int) -> dict[str, Any]:
-        """Update the grill temperature setpoint and verify it was accepted."""
-        setpoint = int(value)
-        await self._request_json(
-            "POST",
-            "/setgrillset",
-            json={"setpoint": setpoint},
-            expect_json=False,
-        )
-
-        status = await self.async_get_status()
-        if status.grill_setpoint_value == setpoint:
-            return {}
-
-        raise ValueError(
-            "Smobot did not accept setpoint "
-            f"{setpoint}; device reported {status.grill_setpoint}"
-        )
-
     async def _request_json(
         self,
         method: str,

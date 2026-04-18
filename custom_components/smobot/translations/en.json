@@ -26,18 +26,13 @@
     }
   },
   "options": {
-    "error": {
-      "invalid_setpoint_range": "Minimum setpoint must be lower than maximum setpoint."
-    },
     "step": {
       "init": {
         "title": "Smobot options",
-        "description": "Adjust polling, display temperature unit, and setpoint safety limits.",
+        "description": "Adjust polling and display temperature unit.",
         "data": {
           "scan_interval": "Polling interval (seconds)",
-          "temperature_unit": "Display temperature unit",
-          "min_setpoint": "Minimum setpoint",
-          "max_setpoint": "Maximum setpoint"
+          "temperature_unit": "Display temperature unit"
         }
       }
     }
@@ -71,6 +66,9 @@
       },
       "food_probe_2": {
         "name": "Food probe 2"
+      },
+      "grill_setpoint": {
+        "name": "Grill setpoint"
       },
       "grill_temperature_f": {
         "name": "Grill temperature Fahrenheit"
@@ -125,9 +123,6 @@
       }
     },
     "number": {
-      "grill_setpoint": {
-        "name": "Grill setpoint"
-      },
       "food_probe_1_target": {
         "name": "Food probe 1 target"
       },

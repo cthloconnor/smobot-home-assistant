@@ -12,7 +12,8 @@ Based on:
 - Grill temperature sensor
 - Food probe 1 sensor
 - Food probe 2 sensor
-- Grill climate control
+- Read-only grill climate entity
+- Grill setpoint sensor
 - Damper state sensor
 - Damper mode sensor
 - Cook time sensor
@@ -25,7 +26,6 @@ Based on:
 - Local cook timer diagnostic sensor
 - Optional Fahrenheit helper sensors for grill and food probe temperatures
 - Lid open binary sensor
-- Grill setpoint number entity
 - Food probe 1 and 2 target temperature helper entities
 - Manual refresh button
 - Start, pause, and reset buttons for the local cook timer
@@ -60,6 +60,7 @@ Based on:
 
 - Assumes the Smobot API is available at `http://<host>/ajax/`.
 - Temperatures default to Celsius, with the raw Fahrenheit value exposed as an attribute. Optional Fahrenheit helper sensors are also available from the entity registry if you want to show Fahrenheit as secondary text in a card.
+- Grill setpoint control is intentionally read-only. The local web API reports the setpoint, but the control command has not been safely verified against the official Smobot app protocol.
 - Food probe target helpers are local Home Assistant values; Smobot does not appear to expose a local API for food target alarms.
 - Diagnostic entities are disabled by default to keep the default dashboard cleaner.
 - A diagnostic refresh button is included if you want to force an immediate poll.

@@ -17,12 +17,8 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .client import SmobotApiClient
 from .const import (
-    CONF_MAX_SETPOINT,
-    CONF_MIN_SETPOINT,
     CONF_SCAN_INTERVAL,
     CONF_TEMPERATURE_UNIT,
-    DEFAULT_MAX_SETPOINT_F,
-    DEFAULT_MIN_SETPOINT_F,
     DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_TEMPERATURE_UNIT,
@@ -126,13 +122,6 @@ class SmobotOptionsFlow(config_entries.OptionsFlow):
     async def async_step_init(self, user_input: dict[str, Any] | None = None):
         """Manage the Smobot options."""
         if user_input is not None:
-            if user_input[CONF_MIN_SETPOINT] >= user_input[CONF_MAX_SETPOINT]:
-                return self.async_show_form(
-                    step_id="init",
-                    data_schema=self._build_options_schema(),
-                    errors={"base": "invalid_setpoint_range"},
-                )
-
             user_input[CONF_SCAN_INTERVAL] = timedelta(
                 seconds=user_input[CONF_SCAN_INTERVAL]
             )
@@ -168,26 +157,5 @@ class SmobotOptionsFlow(config_entries.OptionsFlow):
                     CONF_TEMPERATURE_UNIT,
                     default=default_unit,
                 ): vol.In({"F": "Fahrenheit", "C": "Celsius"}),
-                vol.Required(
-                    CONF_MIN_SETPOINT,
-                    default=self.config_entry.options.get(
-                        CONF_MIN_SETPOINT,
-                        _api_fahrenheit_to_unit(DEFAULT_MIN_SETPOINT_F, default_unit),
-                    ),
-                ): vol.All(vol.Coerce(int), vol.Range(min=1, max=1000)),
-                vol.Required(
-                    CONF_MAX_SETPOINT,
-                    default=self.config_entry.options.get(
-                        CONF_MAX_SETPOINT,
-                        _api_fahrenheit_to_unit(DEFAULT_MAX_SETPOINT_F, default_unit),
-                    ),
-                ): vol.All(vol.Coerce(int), vol.Range(min=1, max=1000)),
             }
         )
-
-
-def _api_fahrenheit_to_unit(value: int | float, unit: str) -> int:
-    """Convert API Fahrenheit defaults to the selected options unit."""
-    if unit == "C":
-        return int(round((float(value) - 32.0) * 5.0 / 9.0))
-    return int(round(float(value)))

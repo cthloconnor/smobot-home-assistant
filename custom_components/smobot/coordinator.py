@@ -60,11 +60,6 @@ class SmobotDataUpdateCoordinator(DataUpdateCoordinator[SmobotStatus]):
             return self.data.grill_setpoint_value
         return None
 
-    async def async_set_grill_setpoint(self, value_f: int) -> None:
-        """Set the grill setpoint and refresh the device-reported value."""
-        await self.client.async_set_setpoint(value_f)
-        await self.async_request_refresh()
-
     @property
     def local_cook_elapsed(self) -> timedelta | None:
         """Return locally tracked cook elapsed time."""

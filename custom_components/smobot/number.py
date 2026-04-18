@@ -10,13 +10,9 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
-    CONF_MAX_SETPOINT,
-    CONF_MIN_SETPOINT,
     DATA_COORDINATOR,
     DEFAULT_MAX_FOOD_TARGET_F,
-    DEFAULT_MAX_SETPOINT_F,
     DEFAULT_MIN_FOOD_TARGET_F,
-    DEFAULT_MIN_SETPOINT_F,
     DOMAIN,
 )
 from .entity import SmobotEntity
@@ -31,68 +27,10 @@ async def async_setup_entry(
     coordinator = hass.data[DOMAIN][entry.entry_id][DATA_COORDINATOR]
     async_add_entities(
         [
-            SmobotSetpointNumber(coordinator),
             SmobotFoodProbeTargetNumber(coordinator, probe_number=1),
             SmobotFoodProbeTargetNumber(coordinator, probe_number=2),
         ]
     )
-
-
-class SmobotSetpointNumber(SmobotEntity, NumberEntity):
-    """Number entity that controls the grill setpoint."""
-
-    _attr_translation_key = "grill_setpoint"
-    _attr_device_class = NumberDeviceClass.TEMPERATURE
-    _attr_native_step = 1
-
-    def __init__(self, coordinator) -> None:
-        """Initialize the number entity."""
-        super().__init__(coordinator)
-        self._attr_unique_id = f"{self.entity_id_prefix}_grill_setpoint"
-
-    @property
-    def native_value(self) -> float | None:
-        """Return the current setpoint."""
-        return self.api_to_native_temperature(self.coordinator.grill_setpoint_value)
-
-    @property
-    def native_min_value(self) -> float:
-        """Return the minimum setpoint."""
-        return float(
-            self.coordinator.entry.options.get(
-                CONF_MIN_SETPOINT,
-                self.api_to_native_temperature(DEFAULT_MIN_SETPOINT_F),
-            )
-        )
-
-    @property
-    def native_max_value(self) -> float:
-        """Return the maximum setpoint."""
-        return float(
-            self.coordinator.entry.options.get(
-                CONF_MAX_SETPOINT,
-                self.api_to_native_temperature(DEFAULT_MAX_SETPOINT_F),
-            )
-        )
-
-    @property
-    def native_unit_of_measurement(self) -> str:
-        """Return the configured unit."""
-        return self.native_temperature_unit
-
-    async def async_set_native_value(self, value: float) -> None:
-        """Update the grill setpoint on the device."""
-        clamped_value = max(self.native_min_value, min(self.native_max_value, value))
-        await self.coordinator.async_set_grill_setpoint(
-            self.native_to_api_temperature(clamped_value)
-        )
-
-    @property
-    def extra_state_attributes(self):
-        """Return Fahrenheit diagnostics."""
-        if self.coordinator.grill_setpoint_value is None:
-            return {}
-        return {"temperature_f": self.coordinator.grill_setpoint_value}
 
 
 class SmobotFoodProbeTargetNumber(SmobotEntity, RestoreEntity, NumberEntity):
