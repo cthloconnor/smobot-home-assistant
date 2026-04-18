@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 from datetime import timedelta
 import json
@@ -167,33 +168,73 @@ class SmobotApiClient:
         return SmobotStatus.from_api(payload)
 
     async def async_set_setpoint(self, value: int) -> dict[str, Any]:
-        """Update the grill temperature setpoint."""
-        return await self._request_json(
-            "POST",
-            "/setgrillset",
-            json={"setpoint": value},
-            expect_json=False,
+        """Update the grill temperature setpoint and verify it was accepted."""
+        setpoint = int(value)
+        attempts: tuple[tuple[str, str, dict[str, Any]], ...] = (
+            ("POST", "/setgrillset", {"json": {"setpoint": setpoint}}),
+            ("POST", "/setgrillset", {"data": {"setpoint": str(setpoint)}}),
+            ("POST", "/setgrillset", {"json": {"set": setpoint}}),
+            ("GET", "/setgrillset", {"params": {"setpoint": str(setpoint)}}),
+            ("GET", "/setgrillset", {"params": {"set": str(setpoint)}}),
         )
+        last_error: Exception | None = None
+
+        for method, path, kwargs in attempts:
+            try:
+                await self._request_json(
+                    method,
+                    path,
+                    expect_json=False,
+                    **kwargs,
+                )
+                await asyncio.sleep(0.75)
+                status = await self.async_get_status()
+            except (ClientError, KeyError, TypeError, ValueError) as err:
+                last_error = err
+                continue
+
+            if status.grill_setpoint_value == setpoint:
+                return {}
+
+            _LOGGER.debug(
+                "Smobot setpoint attempt %s %s did not stick; requested %s, got %s",
+                method,
+                path,
+                setpoint,
+                status.grill_setpoint,
+            )
+
+        if last_error is not None:
+            raise ValueError(
+                f"Smobot did not accept setpoint {setpoint}: {last_error}"
+            ) from last_error
+        raise ValueError(f"Smobot did not accept setpoint {setpoint}")
 
     async def _request_json(
         self,
         method: str,
         path: str,
         json: dict[str, Any] | None = None,
+        data: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
         expect_json: bool = True,
     ) -> dict[str, Any]:
         """Execute an HTTP request against the local Smobot API."""
         url = f"{self._base_url}{path}"
+        headers = {
+            "Accept": "*/*",
+            "Accept-Encoding": "gzip, deflate",
+            "Accept-Language": "en-us",
+        }
+        if json is not None:
+            headers["Content-Type"] = "application/json"
         async with self._session.request(
             method,
             url,
             json=json,
-            headers={
-                "Accept": "*/*",
-                "Content-Type": "application/json",
-                "Accept-Encoding": "gzip, deflate",
-                "Accept-Language": "en-us",
-            },
+            data=data,
+            params=params,
+            headers=headers,
             raise_for_status=True,
         ) as response:
             if not expect_json:
