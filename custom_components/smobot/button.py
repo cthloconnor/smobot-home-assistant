@@ -51,7 +51,6 @@ class SmobotStartCookTimerButton(SmobotEntity, ButtonEntity):
 
     _attr_translation_key = "start_cook_timer"
     _attr_icon = "mdi:play"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, coordinator) -> None:
         """Initialize the start timer button."""
@@ -68,7 +67,6 @@ class SmobotPauseCookTimerButton(SmobotEntity, ButtonEntity):
 
     _attr_translation_key = "pause_cook_timer"
     _attr_icon = "mdi:pause"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, coordinator) -> None:
         """Initialize the pause timer button."""
@@ -85,7 +83,6 @@ class SmobotResetCookTimerButton(SmobotEntity, ButtonEntity):
 
     _attr_translation_key = "reset_cook_timer"
     _attr_icon = "mdi:restart"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, coordinator) -> None:
         """Initialize the reset timer button."""

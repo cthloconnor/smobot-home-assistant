@@ -180,7 +180,6 @@ SENSORS: tuple[SmobotSensorEntityDescription, ...] = (
         translation_key="local_cook_timer",
         icon="mdi:timer-sand",
         value_fn=lambda status: None,
-        diagnostic=True,
     ),
 )
 

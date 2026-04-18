@@ -9,6 +9,7 @@ from aiohttp import ClientError
 from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.util.dt import utcnow
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
@@ -41,6 +42,7 @@ class SmobotDataUpdateCoordinator(DataUpdateCoordinator[SmobotStatus]):
         self._cook_elapsed_before_pause = timedelta(0)
         self._local_cook_started_at: datetime | None = None
         self._cook_prompt_sent = False
+        self._cook_timer_unsub = None
 
     async def _async_update_data(self) -> SmobotStatus:
         """Fetch data from the device."""
@@ -81,7 +83,8 @@ class SmobotDataUpdateCoordinator(DataUpdateCoordinator[SmobotStatus]):
         if self._local_cook_started_at is None:
             self._local_cook_started_at = utcnow()
             self._cook_prompt_sent = True
-            await self.async_request_refresh()
+            self._ensure_cook_timer_updates()
+            self.async_update_listeners()
 
     async def async_pause_cook_timer(self) -> None:
         """Pause the local cook timer."""
@@ -89,18 +92,45 @@ class SmobotDataUpdateCoordinator(DataUpdateCoordinator[SmobotStatus]):
             return
         self._cook_elapsed_before_pause += utcnow() - self._local_cook_started_at
         self._local_cook_started_at = None
-        await self.async_request_refresh()
+        self._stop_cook_timer_updates()
+        self.async_update_listeners()
 
     async def async_reset_cook_timer(self) -> None:
         """Reset the local cook timer."""
         self._cook_elapsed_before_pause = timedelta(0)
         self._local_cook_started_at = None
         self._cook_prompt_sent = False
+        self._stop_cook_timer_updates()
         persistent_notification.async_dismiss(
             self.hass,
             notification_id=f"{DOMAIN}_{self.entry.entry_id}_cook_timer",
         )
-        await self.async_request_refresh()
+        self.async_update_listeners()
+
+    def _ensure_cook_timer_updates(self) -> None:
+        """Schedule local timer state updates while the cook timer is running."""
+        if self._cook_timer_unsub is not None:
+            return
+        self._cook_timer_unsub = async_track_time_interval(
+            self.hass,
+            self._handle_cook_timer_tick,
+            timedelta(seconds=1),
+        )
+
+    def _stop_cook_timer_updates(self) -> None:
+        """Stop local timer state updates."""
+        if self._cook_timer_unsub is None:
+            return
+        self._cook_timer_unsub()
+        self._cook_timer_unsub = None
+
+    def _handle_cook_timer_tick(self, now: datetime) -> None:
+        """Notify timer listeners once per second while running."""
+        self.async_update_listeners()
+
+    def stop_local_cook_timer_updates(self) -> None:
+        """Stop any local timer update callbacks during unload."""
+        self._stop_cook_timer_updates()
 
     def _cook_timer_can_start(self, status: SmobotStatus) -> bool:
         """Return whether the device is reporting valid cook values."""
