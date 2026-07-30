@@ -10,8 +10,8 @@ from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.event import async_track_time_interval
-from homeassistant.util.dt import utcnow
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util.dt import utcnow
 
 from .client import SmobotApiClient, SmobotStatus
 from .const import CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DOMAIN
@@ -83,6 +83,10 @@ class SmobotDataUpdateCoordinator(DataUpdateCoordinator[SmobotStatus]):
         if self._local_cook_started_at is None:
             self._local_cook_started_at = utcnow()
             self._cook_prompt_sent = True
+            persistent_notification.async_dismiss(
+                self.hass,
+                notification_id=f"{DOMAIN}_{self.entry.entry_id}_cook_timer",
+            )
             self._ensure_cook_timer_updates()
             self.async_update_listeners()
 

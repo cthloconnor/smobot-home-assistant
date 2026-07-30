@@ -3,9 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import timedelta
 from typing import Callable
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorEntityDescription
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorEntityDescription,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory, PERCENTAGE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
@@ -88,7 +93,7 @@ SENSORS: tuple[SmobotSensorEntityDescription, ...] = (
         translation_key="damper_state",
         icon="mdi:air-filter",
         native_unit_of_measurement=PERCENTAGE,
-        value_fn=lambda status: status.damper_state,
+        value_fn=lambda status: status.damper_state_value,
         diagnostic=True,
     ),
     SmobotSensorEntityDescription(
@@ -116,42 +121,42 @@ SENSORS: tuple[SmobotSensorEntityDescription, ...] = (
         key="proportional",
         translation_key="proportional",
         icon="mdi:calculator-variant-outline",
-        value_fn=lambda status: status.proportional,
+        value_fn=lambda status: status.proportional_value,
         diagnostic=True,
     ),
     SmobotSensorEntityDescription(
         key="integral",
         translation_key="integral",
         icon="mdi:calculator-variant-outline",
-        value_fn=lambda status: status.integral,
+        value_fn=lambda status: status.integral_value,
         diagnostic=True,
     ),
     SmobotSensorEntityDescription(
         key="kp",
         translation_key="kp",
         icon="mdi:tune",
-        value_fn=lambda status: status.kp,
+        value_fn=lambda status: status.kp_value,
         diagnostic=True,
     ),
     SmobotSensorEntityDescription(
         key="ki",
         translation_key="ki",
         icon="mdi:tune",
-        value_fn=lambda status: status.ki,
+        value_fn=lambda status: status.ki_value,
         diagnostic=True,
     ),
     SmobotSensorEntityDescription(
         key="kd",
         translation_key="kd",
         icon="mdi:tune",
-        value_fn=lambda status: status.kd,
+        value_fn=lambda status: status.kd_value,
         diagnostic=True,
     ),
     SmobotSensorEntityDescription(
         key="device_state",
         translation_key="device_state",
         icon="mdi:state-machine",
-        value_fn=lambda status: status.device_state,
+        value_fn=lambda status: status.device_state_value,
         diagnostic=True,
     ),
     SmobotSensorEntityDescription(
@@ -191,7 +196,9 @@ async def async_setup_entry(
 ) -> None:
     """Set up Smobot sensors from a config entry."""
     coordinator = hass.data[DOMAIN][entry.entry_id][DATA_COORDINATOR]
-    async_add_entities(SmobotSensor(coordinator, description) for description in SENSORS)
+    async_add_entities(
+        SmobotSensor(coordinator, description) for description in SENSORS
+    )
 
 
 class SmobotSensor(SmobotEntity, SensorEntity):
@@ -216,7 +223,9 @@ class SmobotSensor(SmobotEntity, SensorEntity):
     def native_value(self):
         """Return the sensor state."""
         if self.entity_description.key == "local_cook_timer":
-            return format_elapsed_time(self.coordinator.local_cook_elapsed)
+            return format_elapsed_time(
+                self.coordinator.local_cook_elapsed or timedelta(0)
+            )
         if self.entity_description.fahrenheit_helper:
             return self.entity_description.value_fn(self.smobot_status)
         if self.entity_description.temperature:
@@ -237,6 +246,10 @@ class SmobotSensor(SmobotEntity, SensorEntity):
     @property
     def extra_state_attributes(self):
         """Return secondary Fahrenheit temperature values where helpful."""
+        if self.entity_description.key == "local_cook_timer":
+            return {"running": self.coordinator.cook_timer_running}
+        if self.entity_description.key == "cook_time":
+            return {"source": "device"}
         if self.entity_description.fahrenheit_helper:
             return {}
         if not self.entity_description.temperature:

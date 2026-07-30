@@ -86,31 +86,31 @@
         "name": "Damper mode"
       },
       "cook_time": {
-        "name": "Cook time"
+        "name": "Device cook time"
       },
       "error": {
         "name": "Error"
       },
       "proportional": {
-        "name": "Proportional"
+        "name": "PID proportional term (raw)"
       },
       "integral": {
-        "name": "Integral"
+        "name": "PID integral term (raw)"
       },
       "kp": {
-        "name": "Kp"
+        "name": "PID Kp (raw)"
       },
       "ki": {
-        "name": "Ki"
+        "name": "PID Ki (raw)"
       },
       "kd": {
-        "name": "Kd"
+        "name": "PID Kd (raw)"
       },
       "device_state": {
         "name": "Device state"
       },
       "operating_state": {
-        "name": "Operating state"
+        "name": "Operating state (inferred)"
       },
       "probe_status": {
         "name": "Probe status"

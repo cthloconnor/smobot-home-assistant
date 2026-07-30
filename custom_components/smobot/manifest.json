@@ -1,12 +1,12 @@
 {
   "domain": "smobot",
   "name": "Smobot",
-  "codeowners": [],
+  "codeowners": ["@cthloconnor"],
   "config_flow": true,
-  "documentation": "https://github.com/eavanvalkenburg/smobot",
+  "documentation": "https://github.com/cthloconnor/smobot-home-assistant",
   "integration_type": "device",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/eavanvalkenburg/smobot/issues",
+  "issue_tracker": "https://github.com/cthloconnor/smobot-home-assistant/issues",
   "loggers": ["custom_components.smobot"],
   "dhcp": [
     {
@@ -15,5 +15,5 @@
     }
   ],
   "requirements": [],
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

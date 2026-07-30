@@ -51,7 +51,9 @@ class SmobotStatus:
             integral=int(payload["i"]),
             damper_mode=int(payload["d"]),
             damper_state=int(payload["dpr"]),
-            lid_open=bool(payload["ld"]),
+            # Some firmware versions serialize numeric fields as strings.
+            # bool("0") is True, so normalize through int first.
+            lid_open=int(payload["ld"]) != 0,
             grill_setpoint=int(payload["set"]),
             device_state=int(payload["ds"]),
             ds=int(payload["ds"]),
@@ -66,22 +68,37 @@ class SmobotStatus:
     @property
     def food_probe_1(self) -> int | None:
         """Return food probe 1 if the sensor is connected."""
-        return None if self.food_probe_1_raw == SENTINEL_VALUE else self.food_probe_1_raw
+        return (
+            None
+            if self.food_probe_1_raw == SENTINEL_VALUE
+            else self.food_probe_1_raw
+        )
 
     @property
     def food_probe_2(self) -> int | None:
         """Return food probe 2 if the sensor is connected."""
-        return None if self.food_probe_2_raw == SENTINEL_VALUE else self.food_probe_2_raw
+        return (
+            None
+            if self.food_probe_2_raw == SENTINEL_VALUE
+            else self.food_probe_2_raw
+        )
 
     @property
     def grill_temperature_value(self) -> int | None:
         """Return grill temperature if the device is reporting one."""
-        return None if self.grill_temperature == SENTINEL_VALUE else self.grill_temperature
+        return (
+            None
+            if self.grill_temperature == SENTINEL_VALUE
+            else self.grill_temperature
+        )
 
     @property
     def is_active(self) -> bool:
         """Return whether the Smobot appears to be actively controlling."""
-        return self.grill_setpoint_value is not None
+        return (
+            self.grill_temperature_value is not None
+            and self.grill_setpoint_value is not None
+        )
 
     @property
     def has_error(self) -> bool:
@@ -92,6 +109,41 @@ class SmobotStatus:
     def error_value(self) -> int | None:
         """Return a normalized error value."""
         return None if self.error == SENTINEL_VALUE else self.error
+
+    @property
+    def proportional_value(self) -> int | None:
+        """Return the raw proportional term when reported."""
+        return None if self.proportional == SENTINEL_VALUE else self.proportional
+
+    @property
+    def integral_value(self) -> int | None:
+        """Return the raw integral term when reported."""
+        return None if self.integral == SENTINEL_VALUE else self.integral
+
+    @property
+    def damper_state_value(self) -> int | None:
+        """Return the damper position when reported."""
+        return None if self.damper_state == SENTINEL_VALUE else self.damper_state
+
+    @property
+    def kp_value(self) -> int | None:
+        """Return the raw proportional tuning constant when reported."""
+        return None if self.kp == SENTINEL_VALUE else self.kp
+
+    @property
+    def ki_value(self) -> int | None:
+        """Return the raw integral tuning constant when reported."""
+        return None if self.ki == SENTINEL_VALUE else self.ki
+
+    @property
+    def kd_value(self) -> int | None:
+        """Return the raw derivative tuning constant when reported."""
+        return None if self.kd == SENTINEL_VALUE else self.kd
+
+    @property
+    def device_state_value(self) -> int | None:
+        """Return the raw device state when reported."""
+        return None if self.device_state == SENTINEL_VALUE else self.device_state
 
     @property
     def grill_setpoint_value(self) -> int | None:
@@ -125,10 +177,10 @@ class SmobotStatus:
         return json.dumps(self.raw_payload, sort_keys=True, separators=(",", ":"))
 
     @property
-    def damper_mode_label(self) -> str:
+    def damper_mode_label(self) -> str | None:
         """Return a friendly damper mode label."""
         if self.damper_mode == SENTINEL_VALUE:
-            return "idle"
+            return None
         if self.damper_mode == 0:
             return "auto"
         if self.damper_mode == 1:

@@ -16,9 +16,9 @@ Based on:
 - Grill setpoint sensor
 - Damper state sensor
 - Damper mode sensor
-- Cook time sensor
+- Read-only device cook time sensor
 - Error sensor
-- PID-style sensors: `P`, `I`, `Kp`, `Ki`, `Kd`
+- Raw PID-related sensors: `P`, `I`, `Kp`, `Ki`, `Kd`
 - Device state sensor
 - Operating state diagnostic sensor
 - Probe status diagnostic sensor
@@ -65,6 +65,17 @@ Based on:
 - Diagnostic entities are disabled by default to keep the default dashboard cleaner.
 - A diagnostic refresh button is included if you want to force an immediate poll.
 - When valid cook temperatures are first detected, Home Assistant prompts you once to start the local cook timer. It will not start automatically.
+- The device-reported `time` value is read-only. Neither the local API client nor the
+  available mySMOBOT API documentation defines a command for starting that device
+  timer. Use the separate local cook timer buttons when you want an elapsed timer
+  managed by Home Assistant.
+- Smobot uses `999` as a not-reported sentinel for probe readings and several
+  live control fields. Those entities are exposed as unknown instead of as
+  literal 999 values. PID constants remain raw because their scaling is not
+  documented.
+- Damper mode labels, error semantics, and the friendly operating state are
+  best-effort interpretations of undocumented local payload fields. The raw
+  payload sensor remains available for diagnosis.
 
 ## License
 
